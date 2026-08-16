@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Postavke{% endblock %}
+{% block content %}
+<h1>Postavke</h1>
+
+<form method="post" action="/postavke" class="card">
+  {% for key, label, value in values %}
+  <p>
+    <label>{{ label }}<br>
+      <input class="num" name="{{ key }}" value="{{ value }}" inputmode="decimal">
+    </label>
+  </p>
+  {% endfor %}
+  <p><button class="primary">Sačuvaj postavke</button></p>
+  <p class="muted small">
+    Napomena: promjene važe za nove planove. Već izračunati planovi zadržavaju
+    kerf i prag upotrebljivosti s kojima su napravljeni.
+  </p>
+</form>
+{% endblock %}

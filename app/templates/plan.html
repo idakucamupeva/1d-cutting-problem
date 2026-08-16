@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Plan #{{ plan.id }}{% endblock %}
+{% block content %}
+<h1>Plan rezanja #{{ plan.id }}
+  {% if plan.status.value == "confirmed" %}<span class="muted">(potvrđen)</span>{% endif %}
+</h1>
+<p class="muted">
+  Narudžba #{{ order.id }}{% if order.customer %} — {{ order.customer }}{% endif %}
+  &nbsp;·&nbsp; {{ material.name }} &nbsp;·&nbsp; kerf {{ plan.kerf_mm }} mm
+  &nbsp;·&nbsp; upotrebljivo od {{ plan.min_usable_mm|mm }} mm
+</p>
+
+<div class="totals">
+  <div class="stat"><b>{{ result.breakdown.new_boards_used }}</b> novih dasaka</div>
+  <div class="stat"><b>{{ result.breakdown.remnants_consumed|length }}</b> ostataka iskorišteno</div>
+  <div class="stat"><b>{{ result.breakdown.remnants_created|length }}</b> novih ostataka</div>
+  <div class="stat"><b>{{ result.breakdown.scrap_mm|mm }} mm</b> otpada</div>
+  <div class="stat"><b>{{ result.breakdown.total_cuts }}</b> rezova</div>
+</div>
+
+{% if board_shortage > 0 %}
+<div class="banner warn">
+  ⚠ Za ovaj plan treba {{ result.breakdown.new_boards_used }} novih dasaka, a na zalihama je
+  {{ material.new_board_count }}. Nedostaje {{ board_shortage }} — nabavite ih prije rezanja.
+</div>
+{% endif %}
+
+{% if not result.ok %}
+<div class="banner err">Plan trenutno nije ispravan — ispravite greške prije potvrde.</div>
+<ul class="errors">
+  {% for i, msg in result.board_errors %}<li>Daska {{ i + 1 }}: {{ msg }}</li>{% endfor %}
+  {% for e in result.demand_errors %}<li>{{ e }}</li>{% endfor %}
+  {% for e in result.inventory_errors %}<li>{{ e }}</li>{% endfor %}
+</ul>
+{% endif %}
+
+<div class="legend">
+  <span class="l-piece">komad</span>
+  <span class="l-remnant">ostatak (vraća se na zalihe)</span>
+  <span class="l-scrap">otpad</span>
+  <span class="l-kerf">rez</span>
+</div>
+
+{% for bv in board_views %}
+{% set outer_idx = loop.index0 %}
+<div class="card">
+  <div class="board-head">
+    <b>Daska {{ loop.index }}:
+      {% if bv.board.source_kind == "new" %}nova daska {{ bv.board.source_length_mm|mm }} mm
+      {% else %}ostatak {{ bv.board.source_length_mm|mm }} mm{% endif %}
+    </b>
+    <span class="muted">
+      {% if bv.leftover_kind == "remnant" %}ostaje {{ bv.leftover|mm }} mm — na zalihe
+      {% elif bv.leftover_kind == "scrap" %}ostaje {{ bv.leftover|mm }} mm — otpad
+      {% else %}bez ostatka{% endif %}
+    </span>
+  </div>
+  {{ bv.svg }}
+  {% if editable %}
+  <div class="piece-moves no-print">
+    {% for piece in bv.board.pieces %}
+    <form method="post" action="/planovi/{{ plan.id }}/premjesti">
+      <input type="hidden" name="board_idx" value="{{ outer_idx }}">
+      <input type="hidden" name="piece_idx" value="{{ loop.index0 }}">
+      <span>{{ piece|mm }} mm →</span>
+      <select name="target">
+        {% for other in board_views %}
+        {% if loop.index0 != outer_idx %}
+        <option value="board:{{ loop.index0 }}">Daska {{ loop.index }}</option>
+        {% endif %}
+        {% endfor %}
+        <option value="new">Nova daska</option>
+        {% for length in remnant_options %}
+        <option value="remnant:{{ length }}">Ostatak {{ length|mm }} mm</option>
+        {% endfor %}
+      </select>
+      <button class="small">Premjesti</button>
+    </form>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endfor %}
+
+{% if editable %}
+<div class="no-print" style="display:flex; gap:14px; flex-wrap:wrap; margin-top:24px;">
+  <form method="post" action="/planovi/{{ plan.id }}/potvrdi">
+    <button class="primary" {% if not result.ok %}disabled{% endif %}>
+      ✓ Potvrdi plan i ažuriraj zalihe
+    </button>
+  </form>
+  <form method="post" action="/planovi/{{ plan.id }}/preracunaj">
+    <button>↻ Preračunaj automatski</button>
+  </form>
+  <form method="post" action="/planovi/{{ plan.id }}/preracunaj">
+    <input type="hidden" name="strategy" value="exact">
+    <button title="Sporije, ali temeljitije pretražuje kombinacije">✦ Preračunaj precizno</button>
+  </form>
+  <button onclick="window.print()">🖨 Štampaj</button>
+</div>
+{% else %}
+<p class="no-print"><button onclick="window.print()">🖨 Štampaj</button></p>
+{% endif %}
+{% endblock %}

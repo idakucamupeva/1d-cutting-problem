@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Početna{% endblock %}
+{% block content %}
+<h1>Radiona — optimizacija rezanja</h1>
+
+<div class="big-buttons">
+  <a href="/narudzbe/nova" class="primary">+ Nova narudžba</a>
+  <a href="/zalihe">Zalihe</a>
+  <a href="/historija">Historija</a>
+</div>
+
+<h2>Stanje zaliha</h2>
+{% for s in summary %}
+<div class="card">
+  <div class="board-head">
+    <b>{{ s.material.name }}</b>
+    <span class="muted">daska {{ s.material.stock_length_mm|mm }} mm</span>
+  </div>
+  <p>
+    Novih dasaka: <b>{{ s.material.new_board_count }}</b> &nbsp;·&nbsp;
+    Ostataka: <b>{{ s.remnant_count }}</b>
+    {% if s.remnant_count %}(ukupno {{ s.remnant_mm|mm }} mm){% endif %}
+  </p>
+</div>
+{% else %}
+<p class="muted">Još nema materijala — dodajte ih pod <a href="/zalihe">Zalihe</a>.</p>
+{% endfor %}
+
+{% if draft_orders %}
+<h2>Narudžbe u pripremi</h2>
+<div class="card">
+  <table>
+    <tr><th>#</th><th>Kupac</th><th>Kreirana</th><th></th></tr>
+    {% for o in draft_orders %}
+    <tr>
+      <td>{{ o.id }}</td>
+      <td>{{ o.customer or "—" }}</td>
+      <td>{{ o.created_at.strftime("%d.%m.%Y.") }}</td>
+      <td>
+        {% if o.plans %}
+        <a href="/planovi/{{ o.plans[-1].id }}" class="nav-btn small">Plan</a>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+{% endblock %}

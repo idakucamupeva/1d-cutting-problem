@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Daske{% endblock %} — Optimizacija rezanja</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <nav>
+    <a href="/" class="brand">🪚 Daske</a>
+    <a href="/narudzbe/nova" class="nav-btn primary">+ Nova narudžba</a>
+    <a href="/zalihe" class="nav-btn">Zalihe</a>
+    <a href="/historija" class="nav-btn">Historija</a>
+    <a href="/postavke" class="nav-btn">Postavke</a>
+  </nav>
+  <main>
+    {% if poruka %}<div class="banner ok">{{ poruka }}</div>{% endif %}
+    {% if greska %}<div class="banner err">{{ greska }}</div>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

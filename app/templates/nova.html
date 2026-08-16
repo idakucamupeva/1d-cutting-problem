@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Nova narudžba{% endblock %}
+{% block content %}
+<h1>Nova narudžba</h1>
+
+<form method="post" action="/narudzbe/nova" class="card">
+  <p>
+    <label>Materijal<br>
+      <select name="material_id">
+        {% for m in materials %}
+        <option value="{{ m.id }}">{{ m.name }} ({{ m.stock_length_mm|mm }} mm)</option>
+        {% endfor %}
+      </select>
+    </label>
+  </p>
+  <p>
+    <label>Kupac (nije obavezno)<br>
+      <input name="customer" maxlength="200" placeholder="npr. Amir H.">
+    </label>
+  </p>
+
+  <h2>Komadi</h2>
+  <div id="rows">
+    <div class="order-row">
+      <input class="num" name="length_mm" placeholder="dužina (mm)" inputmode="decimal" required>
+      <span>mm &nbsp;×</span>
+      <input class="num" name="quantity" type="number" min="1" value="1">
+      <span>kom</span>
+    </div>
+  </div>
+  <p><button type="button" onclick="addRow()">+ Dodaj dužinu</button></p>
+
+  <p><button type="submit" class="primary">Izračunaj plan rezanja</button></p>
+</form>
+
+<script>
+function addRow() {
+  const rows = document.getElementById("rows");
+  const row = rows.firstElementChild.cloneNode(true);
+  row.querySelector('[name="length_mm"]').value = "";
+  row.querySelector('[name="length_mm"]').required = false;
+  row.querySelector('[name="quantity"]').value = "1";
+  rows.appendChild(row);
+  row.querySelector('[name="length_mm"]').focus();
+}
+</script>
+{% endblock %}

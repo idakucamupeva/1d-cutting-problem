@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Zalihe{% endblock %}
+{% block content %}
+<h1>Zalihe</h1>
+
+{% for d in data %}
+<div class="card">
+  <div class="board-head">
+    <b style="font-size:1.15em">{{ d.material.name }}</b>
+    <span class="muted">daska {{ d.material.stock_length_mm|mm }} mm</span>
+  </div>
+
+  <p>
+  <form method="post" action="/zalihe/{{ d.material.id }}/broj-dasaka" class="inline">
+    <label>Novih dasaka:
+      <input class="num" type="number" name="count" min="0" value="{{ d.material.new_board_count }}">
+    </label>
+    <button class="small">Sačuvaj</button>
+  </form>
+  </p>
+
+  <h2>Ostaci</h2>
+  {% if d.groups %}
+  <table>
+    <tr><th>Dužina</th><th>Komada</th></tr>
+    {% for length, count in d.groups %}
+    <tr><td>{{ length|mm }} mm</td><td>{{ count }}</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">Nema ostataka na zalihama.</p>
+  {% endif %}
+
+  <p>
+  <form method="post" action="/zalihe/{{ d.material.id }}/ostatak" class="inline">
+    <input class="num" name="length_mm" placeholder="dužina (mm)" inputmode="decimal" required>
+    <span>mm ×</span>
+    <input class="num" type="number" name="count" min="1" value="1">
+    <button name="action" value="dodaj" class="small">+ Dodaj</button>
+    <button name="action" value="ukloni" class="small danger">− Ukloni</button>
+  </form>
+  </p>
+
+  <h2>Rezervisane dužine <span class="muted small">(česte narudžbe — optimizator ih čuva)</span></h2>
+  <p>
+    {% for r in d.reserved %}
+    <form method="post" action="/zalihe/rezervisana/{{ r.id }}/obrisi" class="inline" style="margin-right:10px">
+      <b>{{ r.length_mm|mm }} mm</b>
+      {% if r.source == "learned" %}<span class="muted small">(naučeno)</span>{% endif %}
+      <button class="small">×</button>
+    </form>
+    {% else %}
+    <span class="muted">Nema rezervisanih dužina.</span>
+    {% endfor %}
+  </p>
+  <form method="post" action="/zalihe/{{ d.material.id }}/rezervisana" class="inline">
+    <input class="num" name="length_mm" placeholder="dužina (mm)" inputmode="decimal" required>
+    <button class="small">+ Rezerviši</button>
+  </form>
+</div>
+{% endfor %}
+
+<h2>Novi materijal</h2>
+<form method="post" action="/zalihe/materijal" class="card inline">
+  <input name="name" placeholder="naziv (npr. Smreka 50×80)" required>
+  <input class="num" name="stock_length_mm" placeholder="dužina (mm)" value="13000" inputmode="decimal" required>
+  <input class="num" type="number" name="new_board_count" min="0" value="0" placeholder="kom">
+  <button class="primary">Dodaj materijal</button>
+</form>
+{% endblock %}

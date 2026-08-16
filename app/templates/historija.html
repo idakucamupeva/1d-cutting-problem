@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Historija{% endblock %}
+{% block content %}
+<h1>Historija narudžbi</h1>
+
+<div class="totals">
+  <div class="stat"><b>{{ rows|length }}</b> potvrđenih narudžbi</div>
+  <div class="stat"><b>{{ scrap_total|mm }} mm</b> ukupnog otpada</div>
+</div>
+
+{% if rows %}
+<div class="card">
+  <table>
+    <tr>
+      <th>#</th><th>Kupac</th><th>Potvrđena</th>
+      <th>Novih dasaka</th><th>Otpad</th><th></th>
+    </tr>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r.order.id }}</td>
+      <td>{{ r.order.customer or "—" }}</td>
+      <td>{{ r.order.confirmed_at.strftime("%d.%m.%Y. %H:%M") if r.order.confirmed_at }}</td>
+      <td>{{ r.plan.plan_json.boards | selectattr("source_kind", "equalto", "new") | list | length if r.plan else "—" }}</td>
+      <td>{{ r.scrap|mm }} mm</td>
+      <td>{% if r.plan %}<a href="/planovi/{{ r.plan.id }}" class="nav-btn small">Plan</a>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% else %}
+<p class="muted">Još nema potvrđenih narudžbi.</p>
+{% endif %}
+{% endblock %}
